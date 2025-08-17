@@ -1,0 +1,15 @@
+{
+  "name": "ari-discord-bot",
+  "version": "0.1.0",
+  "description": "Discord bot that shows ARMA Reforger server stats",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "NODE_ENV=development node index.js"
+  },
+  "dependencies": {
+    "discord.js": "^14.21.0",
+    "dotenv": "^17.2.1"
+  }
+}

@@ -61,6 +61,19 @@ async function registerCommands() {
 	}
 }
 
+// Timezone utilities (Asia/Jakarta GMT+7)
+const DISPLAY_TZ = 'Asia/Jakarta';
+function fmtTime(date) {
+	try {
+		return new Intl.DateTimeFormat('en-GB', { timeZone: DISPLAY_TZ, hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(date);
+	} catch { return date.toLocaleTimeString(); }
+}
+function fmtDateTime(date) {
+	try {
+		return new Intl.DateTimeFormat('en-GB', { timeZone: DISPLAY_TZ, year: 'numeric', month: 'short', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit' }).format(date) + ` ${DISPLAY_TZ}`;
+	} catch { return date.toLocaleString(); }
+}
+
 // Format an embed from stats
 function buildEmbed(stats) {
 	const now = new Date();
@@ -99,7 +112,7 @@ function buildEmbed(stats) {
 	const embed = new EmbedBuilder()
 		.setColor(color)
 		.setTitle(`**${stats.name}**`)
-		.setDescription(`**Status:** ${statusLine}${!stats.online && stats.reason ? ` (${stats.reason})` : ''}\n**Last Check:** ${now.toLocaleTimeString()}\n\u200B`)
+		.setDescription(`**Status:** ${statusLine}${!stats.online && stats.reason ? ` (${stats.reason})` : ''}\n**Last Check:** ${fmtTime(now)} (${DISPLAY_TZ})\n\u200B`)
 		.addFields(
 			{ name: ':bust_in_silhouette: Players', value: `${playerCount}\n${capacityBar} (${capacity}%)`, inline: true },
 			{ name: ':map: Map', value: `${mapName}\nVersion: ${version}`, inline: true },
@@ -109,7 +122,7 @@ function buildEmbed(stats) {
 			// { name: 'Address', value: `${host}:${port}`, inline: true },
 			// { name: 'Password', value: stats.password ? 'Yes 🔒' : 'No 🔓', inline: true },
 		)
-		.setFooter({ text: `Updated • ${now.toLocaleString()}` });
+	.setFooter({ text: `Updated • ${fmtDateTime(now)}` });
 	return embed;
 }
 

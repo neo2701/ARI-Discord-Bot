@@ -19,3 +19,6 @@ Thumbs.db
 # Misc
 *.tgz
 .idea/
+
+
+stats.js

@@ -3,7 +3,8 @@
 
 const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes, EmbedBuilder } = require('discord.js');
 require('dotenv').config();
-const { fetchServerStats } = require('./stats');
+// Using GameDig-based stats now
+const { fetchServerStats } = require('./gamedig');
 
 // ----- Environment Variables -----
 // DISCORD_TOKEN          - Bot token
@@ -75,7 +76,9 @@ function buildEmbed(stats) {
 	function bar(pct) {
 		const total = 10;
 		const filled = Math.min(total, Math.round((pct / 100) * total));
-		return '█'.repeat(filled) + '░'.repeat(total - filled);
+		const filledChar = '▰';
+		const emptyChar = '▱';
+		return filledChar.repeat(filled) + emptyChar.repeat(total - filled);
 	}
 
 	const capacityBar = bar(stats.capacityPct || 0);
@@ -92,31 +95,21 @@ function buildEmbed(stats) {
 
 	const color = stats.online ? 0x00a86b : 0xcc3333;
 	const statusLine = stats.online ? '🟢 Online' : '🔴 Offline';
-	const measuredPingParts = [];
-	if (stats.ping != null) measuredPingParts.push(`API ${stats.ping}ms`);
-	if (stats.shellPingMs != null) measuredPingParts.push(`ICMP ${stats.shellPingMs.toFixed(0)}ms`);
-	if (stats.tcpPingMs != null) measuredPingParts.push(`TCP ${stats.tcpPingMs}ms`);
-	const pingCombined = measuredPingParts.length ? measuredPingParts.join(' | ') : ping;
 
 	const embed = new EmbedBuilder()
 		.setColor(color)
-		.setTitle('LIVE SERVER MONITOR')
-		.setDescription(`**${stats.name}**\n\n**Status:** ${statusLine}${!stats.online && stats.reason ? ` (${stats.reason})` : ''} \u2022 **Last Check:** ${now.toLocaleTimeString()}\n\u200B`)
+		.setTitle(`**${stats.name}**`)
+		.setDescription(`**Status:** ${statusLine}${!stats.online && stats.reason ? ` (${stats.reason})` : ''}\n**Last Check:** ${now.toLocaleTimeString()}\n\u200B`)
 		.addFields(
-			{ name: 'Players', value: `${playerCount}\n${capacityBar} (${capacity}%)`, inline: true },
-			{ name: 'Map', value: `${mapName}\nVersion: ${version}`, inline: true },
-			{ name: 'Ping', value: pingCombined, inline: true },
-			{ name: 'CPU', value: `${cpuLoadStr}\n${cpuHzStr}`, inline: true },
-			{ name: 'Uptime', value: uptimeStr, inline: true },
-			{ name: 'Address', value: `${host}:${port}`, inline: true },
-			{ name: 'Password', value: stats.password ? 'Yes 🔒' : 'No 🔓', inline: true },
+			{ name: ':bust_in_silhouette: Players', value: `${playerCount}\n${capacityBar} (${capacity}%)`, inline: true },
+			{ name: ':map: Map', value: `${mapName}\nVersion: ${version}`, inline: true },
+			// { name: ':ping_pong: Ping', value: ping, inline: true },
+			// { name: 'CPU', value: `${cpuLoadStr}\n${cpuHzStr}`, inline: true },
+			// { name: 'Uptime', value: uptimeStr, inline: true },
+			// { name: 'Address', value: `${host}:${port}`, inline: true },
+			// { name: 'Password', value: stats.password ? 'Yes 🔒' : 'No 🔓', inline: true },
 		)
 		.setFooter({ text: `Updated • ${now.toLocaleString()}` });
-
-	if (stats.playerNames && stats.playerNames.length) {
-		const list = stats.playerNames.slice(0, 30).join(', ');
-		embed.addFields({ name: `Players (${stats.playerNames.length})`, value: list || 'None' });
-	}
 	return embed;
 }
 
@@ -127,7 +120,7 @@ async function updatePresenceAndMessage() {
 		const playersStr = `${stats.players}/${stats.maxPlayers}`;
 		if (client.user) {
 			if (stats.online) {
-				client.user.setActivity({ name: `Players ${playersStr}`, type: ActivityType.Custom });
+				client.user.setActivity({ name: `Server Online | Players ${playersStr}`, type: ActivityType.Custom });
 			} else {
 				client.user.setActivity({ name: 'Server Offline', type: ActivityType.Custom });
 			}
@@ -139,7 +132,7 @@ async function updatePresenceAndMessage() {
 				if (statusMessageId) {
 					msg = await channel.messages.fetch(statusMessageId).catch(() => null);
 				}
-				const content = `Server Status`;
+				const content = ``;
 				if (msg) {
 					await msg.edit({ content, embeds: [buildEmbed(stats)] });
 				} else {

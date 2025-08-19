@@ -138,17 +138,6 @@ async function fetchServerStats() {
     }
   }
 
-  // Perform host pings (non-blocking heavy operations could be parallel; here sequential for simplicity)
-  let shellPingMs, tcpPingMs;
-  if (host) {
-    try { shellPingMs = await shellPing(host); } catch (_) { shellPingMs = undefined; }
-    if (!shellPingMs && port) {
-      try { tcpPingMs = await tcpPing(host, port); } catch (_) { tcpPingMs = undefined; }
-    } else if (port) {
-      // Optionally still get tcp ping for comparison
-      try { tcpPingMs = await tcpPing(host, port); } catch (_) { tcpPingMs = undefined; }
-    }
-  }
 
   return {
     online: true,
@@ -168,8 +157,6 @@ async function fetchServerStats() {
     capacityPct,
     cpuAvgLoad,
     cpuAvgHz,
-    shellPingMs,
-    tcpPingMs,
     _raw: raw
   };
 }

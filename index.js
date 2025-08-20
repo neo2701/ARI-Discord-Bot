@@ -1,9 +1,6 @@
-// Discord bot that periodically fetches ARMA Reforger server stats and updates
-// presence + a status message, and exposes a /server slash command.
-
 const { Client, Events, GatewayIntentBits, ActivityType, REST, Routes, EmbedBuilder } = require('discord.js');
 require('dotenv').config();
-// Using GameDig-based stats now
+// Using GameDig module
 const { fetchServerStats } = require('./gamedig');
 
 // ----- Environment Variables -----
@@ -79,11 +76,7 @@ function buildEmbed(stats) {
 	const now = new Date();
 	const playerCount = `${stats.players}/${stats.maxPlayers}`;
 	const capacity = stats.capacityPct?.toFixed(1) || '0.0';
-	const ping = stats.online && stats.ping != null ? `${stats.ping} ms` : '—';
-	const version = stats.version || 'Unknown';
 	const mapName = stats.map || 'Unknown';
-	const host = stats.host || 'Unknown';
-	const port = stats.port || 'Unknown';
 
 	// Helper: progress bar (10 segments)
 	function bar(pct) {
@@ -95,16 +88,7 @@ function buildEmbed(stats) {
 	}
 
 	const capacityBar = bar(stats.capacityPct || 0);
-	// Dynamic additions
-	let uptimeStr = 'N/A';
-	if (stats.uptimeSeconds) {
-		const d = Math.floor(stats.uptimeSeconds / 86400);
-		const h = Math.floor((stats.uptimeSeconds % 86400) / 3600);
-		const m = Math.floor((stats.uptimeSeconds % 3600) / 60);
-		uptimeStr = `${d}d ${h}h ${m}m`;
-	}
-	const cpuLoadStr = stats.cpuAvgLoad != null ? `${stats.cpuAvgLoad.toFixed(1)}%` : 'N/A';
-	const cpuHzStr = stats.cpuAvgHz != null ? `${stats.cpuAvgHz} MHz` : '';
+	// Only show players & map to keep embed concise
 
 	const color = stats.online ? 0x00a86b : 0xcc3333;
 	const statusLine = stats.online ? '🟢 Online' : '🔴 Offline';
@@ -115,12 +99,7 @@ function buildEmbed(stats) {
 		.setDescription(`**Status:** ${statusLine}${!stats.online && stats.reason ? ` (${stats.reason})` : ''}\n**Last Check:** ${fmtTime(now)} (${DISPLAY_TZ})\n\u200B`)
 		.addFields(
 			{ name: ':bust_in_silhouette: Players', value: `${playerCount}\n${capacityBar} (${capacity}%)`, inline: true },
-			{ name: ':map: Map', value: `${mapName}\nVersion: ${version}`, inline: true },
-			// { name: ':ping_pong: Ping', value: ping, inline: true },
-			// { name: 'CPU', value: `${cpuLoadStr}\n${cpuHzStr}`, inline: true },
-			// { name: 'Uptime', value: uptimeStr, inline: true },
-			// { name: 'Address', value: `${host}:${port}`, inline: true },
-			// { name: 'Password', value: stats.password ? 'Yes 🔒' : 'No 🔓', inline: true },
+			{ name: ':map: Map', value: mapName, inline: true },
 		)
 	.setFooter({ text: `Updated • ${fmtDateTime(now)}` });
 	return embed;
